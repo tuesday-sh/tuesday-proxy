@@ -1,0 +1,29 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "tuesday-proxy"
+main = "src/index.js"
+compatibility_date = "2026-11-06"
+account_id = "a994c7ff6c97fb6120c889c2236cb49b"
+
+# Scoped strictly to /api/v1/* so /up, /ping/:token, and Devise browser routes
+# pass directly to tuesday-server without invoking the Worker or bot/device gates.
+routes = [
+  { pattern = "api.tuesday.sh/api/v1/*", zone_id = "0093c51328b1765e57ee1997f9ad0b05" }
+]
+
+[vars]
+ORIGIN_BASE_URL = "https://api.tuesday.sh"
+ANON_HOURLY_LIMIT = "30"
+AUTH_HOURLY_LIMIT = "300"
+MAX_DISCOVERY_PAYLOAD_BYTES = "850000"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1

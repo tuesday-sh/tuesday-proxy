@@ -1,0 +1,26 @@
+name: Edge Gateway CI/CD/CA (Packablock Continuous Attestation)
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-attest:
+    name: Test Edge Worker & Packablock Attestation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run Edge Gateway Unit Tests
+        run: npm test

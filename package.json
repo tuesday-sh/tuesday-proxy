@@ -1,0 +1,19 @@
+{
+  "name": "@tuesday-sh/tuesday-proxy",
+  "version": "0.2.0",
+  "description": "Cloudflare Worker Edge Gateway for Tuesday.sh API (/api/v1/*) with Tier 0 Gold Catalog Short-Circuit, Bot & Rate Shield, and Zero-Photo-Retention Guardrails",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --test test/index.test.mjs",
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler deploy"
+  },
+  "keywords": [
+    "cloudflare-workers",
+    "edge-gateway",
+    "tuesday-sh",
+    "hardware-discovery"
+  ],
+  "license": "Proprietary"
+}
