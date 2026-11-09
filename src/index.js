@@ -14,6 +14,10 @@
  * 5. Enforces `X-Tuesday-Image-Retention: none_ephemeral_ram_only` on all discovery responses.
  */
 
+import { GOLD_CATALOG_SIGNATURES } from "./edge-gold-catalog.js";
+
+export { GOLD_CATALOG_SIGNATURES };
+
 export const PRIVACY_ATTESTATION = Object.freeze({
   imageRetention: "none_ephemeral_ram_only",
   persistedFields: ["extractedIdentifiers", "inferredVendor", "inferredModel", "latencyMs", "tokenUsage"],
@@ -25,100 +29,6 @@ export const DEFAULT_CLUE_TYPES = Object.freeze([
   "Serial Number",
   "Barcode",
   "QR Code",
-]);
-
-export const GOLD_CATALOG_SIGNATURES = Object.freeze([
-  {
-    pattern: /\b(UDM-PRO|UDM\s*PRO)\b/i,
-    vendor: "Ubiquiti Inc.",
-    model: "UDM-Pro",
-    displayName: "UniFi Dream Machine Pro (UDM-Pro)",
-    category: "Router / Security Gateway",
-    hostname: "unifi-udm-pro",
-    osDetails: "UniFi OS 4.0.20 (Debian 12 apt)",
-    pkgManager: "apt",
-    lifecycleTier: "active",
-    trustZone: "z0_core",
-    reasoning: "Matched exact UDM-Pro identifier in Gold Hardware Catalog ($0.00 Edge short-circuit).",
-  },
-  {
-    pattern: /\b(UCG-ULTRA|CLOUD\s*GATEWAY\s*ULTRA)\b/i,
-    vendor: "Ubiquiti Inc.",
-    model: "UCG-Ultra",
-    displayName: "UniFi Cloud Gateway Ultra (UCG-Ultra)",
-    category: "Router / Security Gateway",
-    hostname: "unifi-ucg-ultra",
-    osDetails: "UniFi OS 4.0.20 (Debian 12 apt)",
-    pkgManager: "apt",
-    lifecycleTier: "active",
-    trustZone: "z0_core",
-    reasoning: "Matched exact UCG-Ultra identifier in Gold Hardware Catalog ($0.00 Edge short-circuit).",
-  },
-  {
-    pattern: /\b(USW-PRO-24-POE|USW-24-POE)\b/i,
-    vendor: "Ubiquiti Inc.",
-    model: "USW-Pro-24-PoE",
-    displayName: "UniFi Switch Pro 24 PoE (USW-Pro-24-PoE)",
-    category: "Managed PoE Switch",
-    hostname: "unifi-usw-pro-24",
-    osDetails: "UniFi Switch Firmware 7.1.26",
-    pkgManager: "firmware",
-    lifecycleTier: "active",
-    trustZone: "z0_core",
-    reasoning: "Matched exact USW-Pro-24-PoE switch identifier in Gold Hardware Catalog ($0.00 Edge short-circuit).",
-  },
-  {
-    pattern: /\b(U7-PRO|U6-PRO)\b/i,
-    vendor: "Ubiquiti Inc.",
-    model: "U7-Pro",
-    displayName: "UniFi U7 Pro Wi-Fi 7 Access Point",
-    category: "Wireless Access Point",
-    hostname: "unifi-u7-pro-ap",
-    osDetails: "UniFi AP Firmware 7.0.66",
-    pkgManager: "firmware",
-    lifecycleTier: "active",
-    trustZone: "z0_core",
-    reasoning: "Matched exact UniFi U7-Pro access point identifier in Gold Hardware Catalog ($0.00 Edge short-circuit).",
-  },
-  {
-    pattern: /\b(R7000|NIGHTHAWK\s*AC1900)\b/i,
-    vendor: "Netgear",
-    model: "R7000",
-    displayName: "Netgear Nighthawk AC1900 (R7000)",
-    category: "Wireless Router",
-    hostname: "netgear-r7000",
-    osDetails: "Netgear Stock Firmware 1.0.11.136",
-    pkgManager: "firmware",
-    lifecycleTier: "legacy",
-    trustZone: "z2_lab",
-    reasoning: "Matched Netgear Nighthawk R7000 identifier in Gold Hardware Catalog ($0.00 Edge short-circuit).",
-  },
-  {
-    pattern: /\b(SG300-10|SG300)\b/i,
-    vendor: "Cisco",
-    model: "SG300-10",
-    displayName: "Cisco Small Business SG300-10 Managed Switch",
-    category: "Managed Switch",
-    hostname: "cisco-sg300-10",
-    osDetails: "Cisco SMB Firmware 1.4.11.5",
-    pkgManager: "firmware",
-    lifecycleTier: "legacy",
-    trustZone: "z2_lab",
-    reasoning: "Matched Cisco SG300-10 managed switch identifier in Gold Hardware Catalog ($0.00 Edge short-circuit).",
-  },
-  {
-    pattern: /\b(SLZB-06\w*|SMLIGHT|ZBDONGLE\S*)\b/i,
-    vendor: "SMLIGHT",
-    model: "SLZB-06",
-    displayName: "SMLIGHT SLZB-06 PoE Zigbee Coordinator",
-    category: "IoT Coordinator",
-    hostname: "slzb-06-zigbee",
-    osDetails: "SLZB-OS v2.3.6 / Home Assistant ZHA & Zigbee2MQTT",
-    pkgManager: "hacs",
-    lifecycleTier: "active",
-    trustZone: "z3_iot",
-    reasoning: "Matched Zigbee Coordinator identifier in Gold Hardware Catalog ($0.00 Edge short-circuit).",
-  },
 ]);
 
 const BOT_UA_PATTERN = /\b(Scrapy|AhrefsBot|SemrushBot|MJ12bot|GPTBot|CCBot|Bytespider|Baiduspider|PetalBot)\b/i;
