@@ -6,6 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "node --test test/index.test.mjs",
+    "test:e2e": "node test/test-live-edge-e2e.mjs",
     "dev": "npx wrangler dev",
     "deploy": "npx wrangler deploy"
   },
@@ -15,5 +16,8 @@
     "tuesday-sh",
     "hardware-discovery"
   ],
-  "license": "Proprietary"
+  "license": "Proprietary",
+  "devDependencies": {
+    "wrangler": "^4.159.0"
+  }
 }
