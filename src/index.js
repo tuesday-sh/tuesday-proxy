@@ -15,8 +15,13 @@
  */
 
 import { GOLD_CATALOG_SIGNATURES } from "./edge-gold-catalog.js";
+import {
+  GOLD_CLUE_INDEX_ETAG,
+  GOLD_CLUE_INDEX_VERSION,
+  getGoldClueIndexGzipBytes,
+} from "./edge-clue-index.js";
 
-export { GOLD_CATALOG_SIGNATURES };
+export { GOLD_CATALOG_SIGNATURES, GOLD_CLUE_INDEX_ETAG, GOLD_CLUE_INDEX_VERSION };
 
 export const PRIVACY_ATTESTATION = Object.freeze({
   imageRetention: "none_ephemeral_ram_only",
@@ -208,6 +213,39 @@ export async function handleApiRequest(request, env = {}, ctx = {}, options = {}
         headers: { "X-Tuesday-Edge-Status": "BLOCKED-BOT" },
       }
     );
+  }
+
+  // 3.5. Edge-Pinned Gold Clue Index (`GET /api/v1/catalog/clue-index`) with ETag 304 Not Modified
+  if (url.pathname === "/api/v1/catalog/clue-index" && request.method === "GET") {
+    const quotedEtag = `"${GOLD_CLUE_INDEX_ETAG}"`;
+    const ifNoneMatch = (request.headers.get("If-None-Match") || "").trim();
+    if (
+      ifNoneMatch === quotedEtag ||
+      ifNoneMatch === GOLD_CLUE_INDEX_ETAG ||
+      ifNoneMatch === `W/${quotedEtag}`
+    ) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          ETag: quotedEtag,
+          "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+          "X-Tuesday-Edge-Status": "HIT-CLUE-INDEX-304",
+          "X-Tuesday-Datalake-Version": GOLD_CLUE_INDEX_VERSION,
+        },
+      });
+    }
+
+    const gzBytes = getGoldClueIndexGzipBytes();
+    return new Response(gzBytes, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/gzip",
+        ETag: quotedEtag,
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+        "X-Tuesday-Edge-Status": "HIT-CLUE-INDEX",
+        "X-Tuesday-Datalake-Version": GOLD_CLUE_INDEX_VERSION,
+      },
+    });
   }
 
   const isDiscoveryRoute = url.pathname.startsWith("/api/v1/discovery/");

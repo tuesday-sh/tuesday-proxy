@@ -181,4 +181,44 @@ describe("Tuesday Edge Gateway (tuesday-proxy)", () => {
     assert.equal(resp.headers.get("X-Tuesday-Edge-Status"), "PASS-ORIGIN");
     assert.equal(resp.headers.get("X-Tuesday-Image-Retention"), "none_ephemeral_ram_only");
   });
+
+  it("serves pinned Gold Clue Index from Edge RAM with ETag and 304 Not Modified without calling origin", async () => {
+    let originCalled = false;
+    const req1 = new Request("https://api.tuesday.sh/api/v1/catalog/clue-index", {
+      method: "GET",
+      headers: { "User-Agent": "TuesdayAndroid/1.0" },
+    });
+
+    const resp1 = await handleApiRequest(req1, {}, {}, {
+      fetchOrigin: async () => {
+        originCalled = true;
+        return Response.json({ ok: true });
+      },
+    });
+
+    assert.equal(originCalled, false);
+    assert.equal(resp1.status, 200);
+    assert.equal(resp1.headers.get("X-Tuesday-Edge-Status"), "HIT-CLUE-INDEX");
+    const etag = resp1.headers.get("ETag");
+    assert.ok(etag && etag.startsWith('"v2.'));
+    const buf = await resp1.arrayBuffer();
+    assert.ok(buf.byteLength > 20_000 && buf.byteLength < 120_000);
+
+    const req2 = new Request("https://api.tuesday.sh/api/v1/catalog/clue-index", {
+      method: "GET",
+      headers: {
+        "User-Agent": "TuesdayAndroid/1.0",
+        "If-None-Match": etag,
+      },
+    });
+    const resp2 = await handleApiRequest(req2, {}, {}, {
+      fetchOrigin: async () => {
+        originCalled = true;
+        return Response.json({ ok: true });
+      },
+    });
+    assert.equal(originCalled, false);
+    assert.equal(resp2.status, 304);
+    assert.equal(resp2.headers.get("X-Tuesday-Edge-Status"), "HIT-CLUE-INDEX-304");
+  });
 });
