@@ -23,6 +23,32 @@ import {
 
 export { GOLD_CATALOG_SIGNATURES, GOLD_CLUE_INDEX_ETAG, GOLD_CLUE_INDEX_VERSION };
 
+/**
+ * Compares two semantic version strings (e.g. "1.0.0" vs "0.1.2").
+ * Returns:
+ *   < 0 if a < b
+ *   0 if a == b
+ *   > 0 if a > b
+ * @param {string} a
+ * @param {string} b
+ * @returns {number}
+ */
+export function compareSemVer(a, b) {
+  const parse = (v) =>
+    String(v || "")
+      .replace(/^v/i, "")
+      .split("-")[0]
+      .split(".")
+      .map((n) => parseInt(n, 10) || 0);
+
+  const [aMaj = 0, aMin = 0, aPatch = 0] = parse(a);
+  const [bMaj = 0, bMin = 0, bPatch = 0] = parse(b);
+
+  if (aMaj !== bMaj) return aMaj - bMaj;
+  if (aMin !== bMin) return aMin - bMin;
+  return aPatch - bPatch;
+}
+
 export const PRIVACY_ATTESTATION = Object.freeze({
   imageRetention: "none_ephemeral_ram_only",
   persistedFields: ["extractedIdentifiers", "inferredVendor", "inferredModel", "latencyMs", "tokenUsage"],
@@ -197,7 +223,7 @@ export async function handleApiRequest(request, env = {}, ctx = {}, options = {}
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
         "Access-Control-Allow-Headers":
-          "Content-Type, Authorization, X-Tuesday-Device-ID, X-Tuesday-Client-Platform, X-Tuesday-Site-Slug",
+          "Content-Type, Authorization, X-Tuesday-Device-ID, X-Tuesday-Client-Platform, X-Tuesday-Site-Slug, X-Tuesday-App-Version, X-Tuesday-Build",
         "Access-Control-Max-Age": "86400",
       },
     });
@@ -211,6 +237,29 @@ export async function handleApiRequest(request, env = {}, ctx = {}, options = {}
       {
         status: 403,
         headers: { "X-Tuesday-Edge-Status": "BLOCKED-BOT" },
+      }
+    );
+  }
+
+  // 3.1. Client version deprecation check (HTTP 426 Upgrade Required)
+  const appVersion = (request.headers.get("X-Tuesday-App-Version") || "").trim();
+  const minSupported = (env.MIN_SUPPORTED_MOBILE_VERSION || "0.1.2").trim();
+  if (appVersion && minSupported && compareSemVer(appVersion, minSupported) < 0) {
+    return Response.json(
+      {
+        error: "upgrade_required",
+        message: "This version of Tuesday.sh is no longer supported. Please update in your app store to continue.",
+        clientVersion: appVersion,
+        minSupportedVersion: minSupported,
+        storeUrl: "https://tuesday.sh/download",
+      },
+      {
+        status: 426,
+        headers: {
+          "X-Tuesday-Edge-Status": "UPGRADE-REQUIRED",
+          "X-Tuesday-Min-Version": minSupported,
+          "Access-Control-Allow-Origin": "*",
+        },
       }
     );
   }

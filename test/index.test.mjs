@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createRateLimiter, handleApiRequest } from "../src/index.js";
+import { compareSemVer, createRateLimiter, handleApiRequest } from "../src/index.js";
 
 describe("Tuesday Edge Gateway (tuesday-proxy)", () => {
   it("passes non-/api/v1/* routes (/ping/:token, /up) straight through without bot or device checks", async () => {
@@ -220,5 +220,62 @@ describe("Tuesday Edge Gateway (tuesday-proxy)", () => {
     assert.equal(originCalled, false);
     assert.equal(resp2.status, 304);
     assert.equal(resp2.headers.get("X-Tuesday-Edge-Status"), "HIT-CLUE-INDEX-304");
+  });
+
+  it("correctly compares semantic versions using compareSemVer", () => {
+    assert.ok(compareSemVer("1.0.0", "0.1.2") > 0);
+    assert.ok(compareSemVer("0.1.0", "0.1.2") < 0);
+    assert.equal(compareSemVer("1.0.0", "1.0.0"), 0);
+    assert.equal(compareSemVer("v1.0.0", "1.0.0"), 0);
+    assert.equal(compareSemVer("1.0.0-debug", "1.0.0"), 0);
+  });
+
+  it("returns HTTP 426 Upgrade Required when mobile client version is below minimum", async () => {
+    let originCalled = false;
+    const req = new Request("https://api.tuesday.sh/api/v1/inventory", {
+      method: "GET",
+      headers: {
+        "User-Agent": "TuesdayAndroid/1.0",
+        "X-Tuesday-App-Version": "0.1.0",
+      },
+    });
+
+    const resp = await handleApiRequest(req, { MIN_SUPPORTED_MOBILE_VERSION: "0.1.2" }, {}, {
+      fetchOrigin: async () => {
+        originCalled = true;
+        return Response.json({ ok: true });
+      },
+    });
+
+    assert.equal(originCalled, false);
+    assert.equal(resp.status, 426);
+    assert.equal(resp.headers.get("X-Tuesday-Edge-Status"), "UPGRADE-REQUIRED");
+    assert.equal(resp.headers.get("X-Tuesday-Min-Version"), "0.1.2");
+    const body = await resp.json();
+    assert.equal(body.error, "upgrade_required");
+    assert.equal(body.clientVersion, "0.1.0");
+    assert.equal(body.minSupportedVersion, "0.1.2");
+  });
+
+  it("allows modern mobile versions (>= min) to pass through to origin", async () => {
+    let originCalled = false;
+    const req = new Request("https://api.tuesday.sh/api/v1/inventory", {
+      method: "GET",
+      headers: {
+        "User-Agent": "TuesdayAndroid/1.0",
+        "X-Tuesday-App-Version": "1.0.0",
+        "X-Tuesday-Build": "4",
+      },
+    });
+
+    const resp = await handleApiRequest(req, { MIN_SUPPORTED_MOBILE_VERSION: "0.1.2" }, {}, {
+      fetchOrigin: async () => {
+        originCalled = true;
+        return Response.json({ items: [] });
+      },
+    });
+
+    assert.equal(originCalled, true);
+    assert.equal(resp.status, 200);
   });
 });

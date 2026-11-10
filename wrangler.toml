@@ -15,6 +15,7 @@ ORIGIN_BASE_URL = "https://api.tuesday.sh"
 ANON_HOURLY_LIMIT = "30"
 AUTH_HOURLY_LIMIT = "300"
 MAX_DISCOVERY_PAYLOAD_BYTES = "850000"
+MIN_SUPPORTED_MOBILE_VERSION = "0.1.2"
 
 [observability]
 enabled = true
